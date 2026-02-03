@@ -4,17 +4,16 @@ import './App.css'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:5000'
 
-console.log('API_URL:', API_URL)
-
 function App() {
   const [messages, setMessages] = useState([
     {
-      content: "Hello! I'm your AI assistant. How can I help you today?",
+      content: "Hello! I'm your AI assistant with memory. How can I help you today?",
       isUser: false
     }
   ])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [sessionId] = useState(() => `session_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`)
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -37,7 +36,10 @@ function App() {
     try {
       const response = await axios.post(
         `${API_URL}/chat`,
-        { message },
+        {
+          message,
+          sessionId
+        },
         {
           headers: {
             'Content-Type': 'application/json'
@@ -84,7 +86,7 @@ function App() {
     <div className="app">
       <div className="chat-container">
         <div className="chat-header">
-          🤖 AI Chat Assistant
+          🤖 AI Chat Assistant (Memory On)
         </div>
 
         <div className="chat-messages">

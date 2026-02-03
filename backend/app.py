@@ -5,6 +5,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.chat_history import InMemoryChatMessageHistory
 import logging
 
 # Configure logging
@@ -31,18 +32,35 @@ except Exception as e:
 
 SYSTEM_PROMPT = "You are a helpful assistant. Keep your responses concise and friendly."
 
-async def get_assistant_response(user_message: str) -> str:
+# In-memory store for chat histories
+# For a 10/10 production app, this would be a database like SQLite or Redis
+chat_histories = {}
+
+def get_session_history(session_id: str) -> InMemoryChatMessageHistory:
+    if session_id not in chat_histories:
+        chat_histories[session_id] = InMemoryChatMessageHistory()
+    return chat_histories[session_id]
+
+async def get_assistant_response(user_message: str, session_id: str = "default") -> str:
     if not llm:
         raise ValueError("LLM not initialized properly. Check your GROQ_API_KEY.")
     
     try:
-        messages = [
-            SystemMessage(content=SYSTEM_PROMPT),
-            HumanMessage(content=user_message),
-        ]
+        # Get history for this session
+        history = get_session_history(session_id)
         
-        # Invoke the LLM (LangChain's invoke is sync by default but ChatGroq supports ainvoke)
+        # Add human message to history
+        history.add_user_message(user_message)
+        
+        # Build the full prompt: System Message + History
+        messages = [SystemMessage(content=SYSTEM_PROMPT)] + history.messages
+        
+        # Invoke the LLM
         response = await llm.ainvoke(messages)
+        
+        # Add AI response to history
+        history.add_ai_message(response.content)
+        
         return response.content
     except Exception as e:
         logger.error(f"Groq API Error: {str(e)}")
@@ -53,6 +71,7 @@ def chat():
     try:
         data = request.get_json()
         user_message = data.get("message")
+        session_id = data.get("sessionId", "default")
 
         if not user_message:
             return jsonify({"error": "Message is empty"}), 400
@@ -64,7 +83,7 @@ def chat():
             }), 500
 
         # Use sync runner for the async function
-        response = asyncio.run(get_assistant_response(user_message))
+        response = asyncio.run(get_assistant_response(user_message, session_id))
         return jsonify({"response": response})
 
     except Exception as e:
@@ -92,7 +111,8 @@ def health():
     return jsonify({
         "status": "ok",
         "api_key_configured": api_key_configured,
-        "model": os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        "model": os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
+        "active_sessions": len(chat_histories)
     })
 
 if __name__ == "__main__":
