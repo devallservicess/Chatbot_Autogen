@@ -1,0 +1,36 @@
+# Environment variables
+.env
+*.env
+.env.local
+.env.*.local
+
+# Build directories
+dist/
+dist-ssr/
+build/
+
+# Dependencies
+node_modules/
+backend/Include/
+backend/Lib/
+backend/Scripts/
+backend/venv/
+backend/pyvenv.cfg
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Project specific
+backend/test_groq.py
