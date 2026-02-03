@@ -34,3 +34,5 @@ Thumbs.db
 
 # Project specific
 backend/test_groq.py
+backend/chatbot.db
+backend/uploads/
