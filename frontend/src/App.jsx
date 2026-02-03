@@ -3,7 +3,7 @@ import axios from 'axios'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism/index.js'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Bot, User, Sparkles, Terminal } from 'lucide-react'
 import './App.css'
@@ -11,6 +11,8 @@ import './App.css'
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:5000'
 
 function App() {
+  console.log('App mounting...')
+
   const [messages, setMessages] = useState([
     {
       content: "Hello! I'm your high-performance AI assistant. I'm powered by Groq and LangChain, featuring conversational memory. How can I help you today?",
@@ -91,7 +93,7 @@ function App() {
       >
         <header className="chat-header">
           <div className="header-title">
-            <Sparkles className="text-accent" size={24} />
+            <Sparkles className="text-accent-icon" size={24} />
             <span>Groq Assistant v2</span>
           </div>
           <div className="status-badge">
@@ -167,7 +169,7 @@ function App() {
 
         <footer className="chat-input-container">
           <div className="input-wrapper">
-            <Terminal size={18} className="absolute left-4 text-secondary pointer-events-none opacity-40" />
+            <Terminal size={18} className="terminal-icon" />
             <input
               type="text"
               value={inputValue}
