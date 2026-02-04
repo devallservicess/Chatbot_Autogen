@@ -7,7 +7,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism/inde
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Send, Bot, User, Sparkles, Terminal,
-  PlusCircle, MessageSquare, Trash2, Upload, FileText, X
+  PlusCircle, MessageSquare, Trash2, Upload, FileText, X, File
 } from 'lucide-react'
 import './App.css'
 
@@ -21,6 +21,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState(null)
+  const [uploadedFile, setUploadedFile] = useState(null)
 
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -117,19 +118,31 @@ function App() {
     setIsUploading(true)
     setUploadStatus("Uploading & Indexing...")
 
+    // Store file info for preview
+    setUploadedFile({
+      name: file.name,
+      size: (file.size / 1024).toFixed(1) + ' KB',
+      type: file.name.split('.').pop()?.toUpperCase() || 'FILE'
+    })
+
     const formData = new FormData()
     formData.append('file', file)
 
     try {
       await axios.post(`${API_URL}/upload`, formData)
-      setUploadStatus("✅ File indexed! Knowledge added.")
-      setTimeout(() => setUploadStatus(null), 3000)
+      setUploadStatus("✅ File indexed!")
     } catch (err) {
       setUploadStatus("❌ Failed to index file.")
+      setUploadedFile(null)
     } finally {
       setIsUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
+  }
+
+  const removeFile = () => {
+    setUploadedFile(null)
+    setUploadStatus(null)
   }
 
   return (
@@ -253,6 +266,28 @@ function App() {
         </section>
 
         <footer className="chat-footer">
+          <AnimatePresence>
+            {uploadedFile && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="file-preview-card"
+              >
+                <div className="file-icon-wrapper">
+                  <File className="file-icon" size={24} />
+                </div>
+                <div className="file-info">
+                  <span className="file-name">{uploadedFile.name}</span>
+                  <span className="file-type">{uploadedFile.type}</span>
+                </div>
+                <button className="remove-file-btn" onClick={removeFile}>
+                  <X size={16} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="input-container">
             <button
               className="action-btn"
