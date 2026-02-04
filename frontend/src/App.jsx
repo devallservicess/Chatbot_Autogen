@@ -175,7 +175,7 @@ function App() {
         <header className="chat-header">
           <div className="header-info">
             <Sparkles className="text-accent-icon" size={24} />
-            <h2>Groq Assistant Pro</h2>
+            <h2>Mahran Assistant Pro</h2>
           </div>
           {uploadStatus && (
             <div className="upload-indicator">
@@ -209,31 +209,32 @@ function App() {
                   {msg.role === 'user' ? <User size={18} /> : <Bot size={18} />}
                 </div>
                 <div className="message-content">
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    className="markdown-body"
-                    components={{
-                      code({ node, inline, className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '')
-                        return !inline && match ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus}
-                            language={match[1]}
-                            PreTag="div"
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
-                        )
-                      }
-                    }}
-                  >
-                    {msg.content}
-                  </ReactMarkdown>
+                  <div className="markdown-body">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || '')
+                          return !inline && match ? (
+                            <SyntaxHighlighter
+                              style={vscDarkPlus}
+                              language={match[1]}
+                              PreTag="div"
+                              {...props}
+                            >
+                              {String(children).replace(/\n$/, '')}
+                            </SyntaxHighlighter>
+                          ) : (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          )
+                        }
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </motion.div>
             ))}

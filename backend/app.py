@@ -11,7 +11,7 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 import logging
@@ -185,9 +185,19 @@ def upload_file():
         
         # Index the file
         try:
-            loader = PyPDFLoader(filepath)
-            documents = loader.load()
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_offset=200)
+            filepath = os.path.abspath(filepath)
+            logger.info(f"Indexing file: {filepath}")
+            
+            if filename.lower().endswith('.pdf'):
+                loader = PyPDFLoader(filepath)
+                documents = loader.load()
+            else:
+                with open(filepath, 'r', encoding='utf-8-sig') as f:
+                    text = f.read()
+                from langchain_core.documents import Document
+                documents = [Document(page_content=text, metadata={"source": filename})]
+                
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
             splits = text_splitter.split_documents(documents)
             
             if vector_store:
@@ -197,7 +207,9 @@ def upload_file():
                 
             return jsonify({"message": f"File {filename} indexed successfully"})
         except Exception as e:
+            import traceback
             logger.error(f"Indexing error: {str(e)}")
+            logger.error(traceback.format_exc())
             return jsonify({"error": f"Failed to index: {str(e)}"}), 500
 
 @app.route("/health")
